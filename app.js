@@ -1,0 +1,1 @@
+import express from 'express';import routes from './routes/routes.views.js';const app=express();app.set('view engine','ejs');app.use(express.urlencoded({extended:true}));app.use(express.static('public'));app.use('/',routes);app.listen(4000);
