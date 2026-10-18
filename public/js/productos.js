@@ -22,9 +22,14 @@ const botonCerrarModal = $('btnCerrarModal');
 
 let productos = [];
 let editandoId = null;
-let imagenEditando = null;
 
-const moneda = (valor) => `S/ ${Number(valor).toFixed(2)}`;
+const moneda = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+});
+const formatoMoneda = (valor) => moneda.format(Number(valor));
 
 const escapar = (texto) =>
     String(texto ?? '')
@@ -34,12 +39,17 @@ const escapar = (texto) =>
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 
+const etiqueta = (texto, clase) =>
+    texto ? `<span class="badge ${clase}">${escapar(texto)}</span>` : '-';
+
 function pintar(lista) {
     const termino = buscador.value.trim().toLowerCase();
     const filtrados = termino
         ? lista.filter((p) =>
               p.nombre.toLowerCase().includes(termino) ||
-              (p.codigo_barras || '').toLowerCase().includes(termino)
+              (p.codigo_barras || '').toLowerCase().includes(termino) ||
+              (p.marca_nombre || '').toLowerCase().includes(termino) ||
+              (p.categoria_nombre || '').toLowerCase().includes(termino)
           )
         : lista;
 
@@ -51,7 +61,7 @@ function pintar(lista) {
     }
 
     tablaBody.innerHTML = filtrados.map((p) => {
-        const stockBajo = p.stock <= (p.stock_minimo ?? 5);
+        const stockBajo = p.stock < 10 || p.stock <= (p.stock_minimo ?? 5);
         const activo = Number(p.estado) === 1;
         return `
         <tr>
@@ -62,13 +72,13 @@ function pintar(lista) {
               <strong>${escapar(p.nombre)}</strong>
               ${p.descripcion ? `<small class="descripcion">${escapar(p.descripcion)}</small>` : ''}
             </td>
-            <td>${p.marca_id ?? '-'}</td>
-            <td>${p.categoria_id ?? '-'}</td>
-            <td>${moneda(p.precio_compra)}</td>
-            <td>${moneda(p.precio_venta)}</td>
+            <td>${etiqueta(p.marca_nombre, 'badge-marca')}</td>
+            <td>${etiqueta(p.categoria_nombre, 'badge-categoria')}</td>
+            <td>${formatoMoneda(p.precio_compra)}</td>
+            <td>${formatoMoneda(p.precio_venta)}</td>
             <td>
               <span class="badge ${stockBajo ? 'badge-peligro' : 'badge-ok'}">${p.stock}</span>
-              ${stockBajo ? '<small class="stock-bajo">stock bajo</small>' : ''}
+              ${stockBajo ? '<small class="stock-bajo">Stock Bajo</small>' : ''}
             </td>
             <td><span class="badge ${activo ? 'badge-ok' : 'badge-inactivo'}">${activo ? 'Activo' : 'Inactivo'}</span></td>
             <td class="acciones">
@@ -81,7 +91,7 @@ function pintar(lista) {
     const total = filtrados.reduce((s, p) => s + p.stock, 0);
     const valor = filtrados.reduce((s, p) => s + Number(p.precio_venta) * p.stock, 0);
     $('totalProductos').textContent = `${filtrados.length} producto(s) · ${total} unidades`;
-    $('valorInventario').textContent = `Valor de inventario: ${moneda(valor)}`;
+    $('valorInventario').textContent = `Valor de inventario: ${formatoMoneda(valor)}`;
 }
 
 async function cargarProductos() {
@@ -95,14 +105,25 @@ async function cargarProductos() {
         pintar(productos);
     } catch (error) {
         if (getToken()) {
-            tablaBody.innerHTML = `<tr><td colspan="10" class="celda-vacia">${error.message}</td></tr>`;
+            tablaBody.innerHTML = `<tr><td colspan="11" class="celda-vacia">${error.message}</td></tr>`;
         }
+    }
+}
+
+function actualizarPreview() {
+    const url = $('imagen_url').value.trim();
+    const preview = $('imagenPreview');
+    if (url) {
+        preview.src = url;
+        preview.classList.remove('oculto');
+    } else {
+        preview.classList.add('oculto');
+        preview.removeAttribute('src');
     }
 }
 
 function abrirModal(producto = null) {
     editandoId = producto ? producto.id : null;
-    imagenEditando = producto?.imagen_url ?? null;
     modalTitulo.textContent = producto ? `Editar producto #${producto.id}` : 'Nuevo producto';
     avisoForm.textContent = '';
 
@@ -111,6 +132,8 @@ function abrirModal(producto = null) {
     $('codigo_barras').value = producto ? producto.codigo_barras : '';
     $('nombre').value = producto ? producto.nombre : '';
     $('descripcion').value = producto ? (producto.descripcion || '') : '';
+    $('imagen_url').value = producto?.imagen_url ?? '';
+    actualizarPreview();
     $('precio_compra').value = producto ? producto.precio_compra : '';
     $('precio_venta').value = producto ? producto.precio_venta : '';
     $('stock').value = producto ? producto.stock : '';
@@ -133,7 +156,7 @@ function leerFormulario() {
         codigo_barras: $('codigo_barras').value.trim(),
         nombre: $('nombre').value.trim(),
         descripcion: $('descripcion').value.trim(),
-        imagen_url: imagenEditando,
+        imagen_url: $('imagen_url').value.trim() || null,
         precio_compra: Number($('precio_compra').value),
         precio_venta: Number($('precio_venta').value),
         stock: Number($('stock').value),
@@ -196,6 +219,8 @@ modal.addEventListener('click', (e) => {
 });
 botonLogout.addEventListener('click', logout);
 buscador.addEventListener('input', () => pintar(productos));
+$('imagen_url').addEventListener('input', actualizarPreview);
+$('imagenPreview').addEventListener('error', () => $('imagenPreview').classList.add('oculto'));
 
 $('usuarioLabel').textContent = getUsuario() ? `Usuario: ${getUsuario()}` : '';
 cargarProductos();

@@ -38,8 +38,8 @@
                             <th>ID</th>
                             <th>Código</th>
                             <th>Producto</th>
-                            <th>Marca ID</th>
-                            <th>Cat. ID</th>
+                            <th>Marca</th>
+                            <th>Categoría</th>
                             <th>Compra</th>
                             <th>Venta</th>
                             <th>Stock</th>
@@ -92,6 +92,11 @@
 
                     <label>Stock mínimo
                         <input type="number" id="stock_minimo" min="0" step="1" value="5">
+                    </label>
+
+                    <label class="col-span-2">Imagen (URL)
+                        <input type="url" id="imagen_url" placeholder="https://ejemplo.com/imagen.jpg">
+                        <img id="imagenPreview" class="form-preview oculto" alt="Vista previa">
                     </label>
 
                     <label>Marca (ID)

@@ -215,10 +215,24 @@ input:focus, select:focus, textarea:focus {
 }
 
 .badge-ok { background: #dcfce7; color: #166534; }
-.badge-peligro { background: #fee2e2; color: #991b1b; }
+.badge-peligro { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
 .badge-inactivo { background: #e2e8f0; color: #475569; }
+.badge-marca { background: #ede9fe; color: #5b21b6; }
+.badge-categoria { background: #cffafe; color: #155e75; }
 
-.stock-bajo { display: block; color: var(--color-peligro); font-size: 0.75rem; margin-top: 0.15rem; }
+.stock-bajo { display: block; color: #c2410c; font-size: 0.75rem; font-weight: 700; margin-top: 0.15rem; }
+
+.form-preview {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--color-borde);
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.form-preview.oculto { display: none; }
 
 /* ---------- Modal ---------- */
 .modal {
