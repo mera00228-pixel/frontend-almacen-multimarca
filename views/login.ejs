@@ -1,1 +1,31 @@
-<h1>Almacen Multimarca</h1><form><input placeholder='Usuario'><input placeholder='Contraseña'><button>Ingresar</button></form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso | Almacén Multimarca</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body">
+
+    <main class="login-card">
+        <h1 class="login-titulo">Almacén Multimarca</h1>
+        <p class="login-subtitulo">Inicia sesión para gestionar el inventario</p>
+
+        <form id="formLogin" autocomplete="on">
+            <label for="usuario">Usuario</label>
+            <input id="usuario" name="usuario" type="text" autocomplete="username" placeholder="admin" required>
+
+            <label for="contraseña">Contraseña</label>
+            <input id="contraseña" name="contraseña" type="password" autocomplete="current-password" required>
+
+            <p id="mensaje" class="form-mensaje" role="alert"></p>
+
+            <button type="submit" id="btnIngresar" class="btn btn-primario btn-block">Ingresar</button>
+        </form>
+    </main>
+
+<script>window.__API_URL__ = '<%= apiUrl %>';</script>
+<script type="module" src="/js/login.js"></script>
+</body>
+</html>

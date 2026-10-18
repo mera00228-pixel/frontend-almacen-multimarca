@@ -1,1 +1,15 @@
-import {Router} from 'express';const router=Router();router.get('/',(req,res)=>res.render('login'));router.get('/productos',(req,res)=>res.render('productos'));export default router;
+import { Router } from 'express';
+
+const router = Router();
+
+// Página principal - Login
+router.get('/', (req, res) => {
+    res.render('login');
+});
+
+// Pantalla productos
+router.get('/productos', (req, res) => {
+    res.render('productos');
+});
+
+export default router;
