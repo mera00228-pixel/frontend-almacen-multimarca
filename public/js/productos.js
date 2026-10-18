@@ -1,4 +1,5 @@
 import { api, getToken, getUsuario, logout } from './api.js';
+import { exportarPDF, exportarExcel } from './reportes.js';
 
 if (!getToken()) {
     window.location.replace('/');
@@ -19,6 +20,11 @@ const avisoForm = $('avisoForm');
 const botonGuardar = $('btnGuardar');
 const botonCancelar = $('btnCancelar');
 const botonCerrarModal = $('btnCerrarModal');
+
+const modalMovimiento = $('modalMovimiento');
+const formMovimiento = $('formMovimiento');
+const movimientoAviso = $('movimientoAviso');
+const botonRegistrarMovimiento = $('btnRegistrarMovimiento');
 
 let productos = [];
 let editandoId = null;
@@ -55,8 +61,6 @@ function pintar(lista) {
 
     if (filtrados.length === 0) {
         tablaBody.innerHTML = '<tr><td colspan="11" class="celda-vacia">No hay productos que coincidan.</td></tr>';
-        $('totalProductos').textContent = '';
-        $('valorInventario').textContent = '';
         return;
     }
 
@@ -82,16 +86,25 @@ function pintar(lista) {
             </td>
             <td><span class="badge ${activo ? 'badge-ok' : 'badge-inactivo'}">${activo ? 'Activo' : 'Inactivo'}</span></td>
             <td class="acciones">
+              <button class="btn btn-mini" data-accion="entrada" data-id="${p.id}" title="Registrar entrada">+ Entrada</button>
+              <button class="btn btn-mini" data-accion="salida" data-id="${p.id}" title="Registrar salida">− Salida</button>
               <button class="btn btn-mini" data-accion="editar" data-id="${p.id}">Editar</button>
               <button class="btn btn-mini btn-peligro" data-accion="eliminar" data-id="${p.id}">Eliminar</button>
             </td>
         </tr>`;
     }).join('');
+}
 
-    const total = filtrados.reduce((s, p) => s + p.stock, 0);
-    const valor = filtrados.reduce((s, p) => s + Number(p.precio_venta) * p.stock, 0);
-    $('totalProductos').textContent = `${filtrados.length} producto(s) · ${total} unidades`;
-    $('valorInventario').textContent = `Valor de inventario: ${formatoMoneda(valor)}`;
+function actualizarKpis(lista) {
+    const totalProductos = lista.length;
+    const stockTotal = lista.reduce((s, p) => s + Number(p.stock), 0);
+    const valorInventario = lista.reduce((s, p) => s + Number(p.precio_venta) * Number(p.stock), 0);
+    const alertas = lista.filter((p) => p.stock < 10 || p.stock <= (p.stock_minimo ?? 5)).length;
+
+    $('kpiProductos').textContent = totalProductos;
+    $('kpiStock').textContent = stockTotal;
+    $('kpiValor').textContent = formatoMoneda(valorInventario);
+    $('kpiAlertas').textContent = alertas;
 }
 
 async function cargarProductos() {
@@ -102,6 +115,7 @@ async function cargarProductos() {
         if (!Array.isArray(productos)) {
             throw new Error('El backend devolvió una respuesta inesperada. Verifique que API_URL termine en /api.');
         }
+        actualizarKpis(productos);
         pintar(productos);
     } catch (error) {
         if (getToken()) {
@@ -200,6 +214,11 @@ tablaBody.addEventListener('click', async (e) => {
         return;
     }
 
+    if (accion === 'entrada' || accion === 'salida') {
+        abrirMovimiento(producto, accion);
+        return;
+    }
+
     if (accion === 'eliminar') {
         if (!confirm(`¿Eliminar el producto "${producto.nombre}"? Esta acción no se puede deshacer.`)) return;
         try {
@@ -209,6 +228,75 @@ tablaBody.addEventListener('click', async (e) => {
             aviso.textContent = error.message;
         }
     }
+});
+
+function abrirMovimiento(producto, tipo) {
+    if (!producto) return;
+
+    movimientoAviso.textContent = '';
+    formMovimiento.reset();
+    $('movimientoProductoId').value = producto.id;
+    $('movimientoTipo').value = tipo;
+    $('movimientoTitulo').textContent = tipo === 'entrada' ? 'Registrar entrada' : 'Registrar salida';
+    $('movimientoProducto').textContent = `${producto.nombre} (ID ${producto.id})`;
+    $('movimientoStockActual').textContent = producto.stock;
+    $('movimientoCantidad').focus();
+
+    modalMovimiento.classList.remove('oculto');
+    modalMovimiento.classList.add('visible');
+}
+
+function cerrarMovimiento() {
+    modalMovimiento.classList.add('oculto');
+    modalMovimiento.classList.remove('visible');
+}
+
+formMovimiento.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    movimientoAviso.textContent = '';
+    botonRegistrarMovimiento.disabled = true;
+
+    try {
+        const datos = {
+            producto_id: Number($('movimientoProductoId').value),
+            tipo: $('movimientoTipo').value,
+            cantidad: Number($('movimientoCantidad').value),
+            motivo: $('movimientoMotivo').value.trim() || null
+        };
+
+        const respuesta = await api('/movimientos', { method: 'POST', body: datos });
+        cerrarMovimiento();
+        aviso.textContent = `Movimiento registrado: ${respuesta.tipo === 'entrada' ? '+' : '-'}${respuesta.cantidad} → stock de "${respuesta.producto_nombre}" ahora es ${respuesta.stock_despues}.`;
+        await cargarProductos();
+    } catch (error) {
+        movimientoAviso.textContent = error.message;
+    } finally {
+        botonRegistrarMovimiento.disabled = false;
+    }
+});
+
+$('btnCancelarMovimiento').addEventListener('click', cerrarMovimiento);
+$('btnCerrarMovimiento').addEventListener('click', cerrarMovimiento);
+modalMovimiento.addEventListener('click', (e) => {
+    if (e.target === modalMovimiento) cerrarMovimiento();
+});
+
+$('btnExportarPdf').addEventListener('click', () => {
+    if (!Array.isArray(productos) || productos.length === 0) {
+        aviso.textContent = 'No hay productos para exportar.';
+        return;
+    }
+    exportarPDF(productos);
+    aviso.textContent = 'PDF generado correctamente.';
+});
+
+$('btnExportarExcel').addEventListener('click', () => {
+    if (!Array.isArray(productos) || productos.length === 0) {
+        aviso.textContent = 'No hay productos para exportar.';
+        return;
+    }
+    exportarExcel(productos);
+    aviso.textContent = 'Excel generado correctamente.';
 });
 
 botonNuevo.addEventListener('click', () => abrirModal());

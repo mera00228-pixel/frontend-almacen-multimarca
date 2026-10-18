@@ -17,19 +17,37 @@
     </header>
 
     <main class="contenido">
+        <section class="kpis">
+            <article class="kpi kpi-productos">
+                <span class="kpi-valor" id="kpiProductos">0</span>
+                <span class="kpi-etiqueta">Total de Productos</span>
+            </article>
+            <article class="kpi kpi-stock">
+                <span class="kpi-valor" id="kpiStock">0</span>
+                <span class="kpi-etiqueta">Stock Total</span>
+            </article>
+            <article class="kpi kpi-inventario">
+                <span class="kpi-valor" id="kpiValor">$ 0,00</span>
+                <span class="kpi-etiqueta">Valor del Inventario</span>
+            </article>
+            <article class="kpi kpi-alertas">
+                <span class="kpi-valor" id="kpiAlertas">0</span>
+                <span class="kpi-etiqueta">Alertas de Stock Bajo</span>
+            </article>
+        </section>
+
         <div class="toolbar">
-            <input id="buscador" type="search" placeholder="Buscar por nombre o código de barras..." class="buscador">
-            <button id="btnNuevo" class="btn btn-primario">+ Nuevo producto</button>
+            <input id="buscador" type="search" placeholder="Buscar por nombre, código, marca o categoría..." class="buscador">
+            <div class="toolbar-acciones">
+                <button id="btnExportarPdf" class="btn btn-secundario">Exportar a PDF</button>
+                <button id="btnExportarExcel" class="btn btn-secundario">Exportar a Excel</button>
+                <button id="btnNuevo" class="btn btn-primario">+ Nuevo producto</button>
+            </div>
         </div>
 
         <p id="aviso" class="form-mensaje" role="alert"></p>
 
         <section class="panel">
-            <div class="panel-resumen">
-                <span id="totalProductos"></span>
-                <span id="valorInventario" class="resumen-valor"></span>
-            </div>
-
             <div class="tabla-scroll">
                 <table class="tabla">
                     <thead>
@@ -125,7 +143,42 @@
         </div>
     </div>
 
+    <div id="modalMovimiento" class="modal oculto">
+        <div class="modal-caja modal-mini">
+            <div class="modal-cabecera">
+                <h2 id="movimientoTitulo">Registrar movimiento</h2>
+                <button id="btnCerrarMovimiento" class="modal-cerrar" type="button" aria-label="Cerrar">&times;</button>
+            </div>
+
+            <p id="movimientoProducto" class="mov-producto"></p>
+            <p class="mov-stock">Stock actual: <strong id="movimientoStockActual">0</strong></p>
+
+            <form id="formMovimiento">
+                <input type="hidden" id="movimientoProductoId">
+                <input type="hidden" id="movimientoTipo">
+
+                <label>Cantidad
+                    <input type="number" id="movimientoCantidad" min="1" step="1" required>
+                </label>
+
+                <label>Motivo (opcional)
+                    <input type="text" id="movimientoMotivo" maxlength="200" placeholder="Compra, venta, ajuste de inventario...">
+                </label>
+
+                <p id="movimientoAviso" class="form-mensaje" role="alert"></p>
+
+                <div class="modal-acciones">
+                    <button type="button" id="btnCancelarMovimiento" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" id="btnRegistrarMovimiento" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 <script>window.__API_URL__ = '<%= apiUrl %>';</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module" src="/js/productos.js"></script>
 </body>
 </html>
