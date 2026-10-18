@@ -185,6 +185,16 @@ input:focus, select:focus, textarea:focus {
 
 .tabla td { padding: 0.7rem 1rem; border-top: 1px solid var(--color-borde); vertical-align: middle; }
 
+.thumb {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-fondo);
+    display: block;
+}
+
 .tabla tbody tr:hover { background: #f8fafc; }
 
 .descripcion { display: block; color: var(--color-suave); font-size: 0.78rem; margin-top: 0.15rem; }

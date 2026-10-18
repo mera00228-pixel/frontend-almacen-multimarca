@@ -22,6 +22,7 @@ const botonCerrarModal = $('btnCerrarModal');
 
 let productos = [];
 let editandoId = null;
+let imagenEditando = null;
 
 const moneda = (valor) => `S/ ${Number(valor).toFixed(2)}`;
 
@@ -43,7 +44,7 @@ function pintar(lista) {
         : lista;
 
     if (filtrados.length === 0) {
-        tablaBody.innerHTML = '<tr><td colspan="10" class="celda-vacia">No hay productos que coincidan.</td></tr>';
+        tablaBody.innerHTML = '<tr><td colspan="11" class="celda-vacia">No hay productos que coincidan.</td></tr>';
         $('totalProductos').textContent = '';
         $('valorInventario').textContent = '';
         return;
@@ -54,6 +55,7 @@ function pintar(lista) {
         const activo = Number(p.estado) === 1;
         return `
         <tr>
+            <td><img class="thumb" src="${escapar(p.imagen_url) || '/img/producto-default.svg'}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/img/producto-default.svg'"></td>
             <td>${p.id}</td>
             <td class="mono">${escapar(p.codigo_barras) || '-'}</td>
             <td>
@@ -85,7 +87,7 @@ function pintar(lista) {
 async function cargarProductos() {
     try {
         aviso.textContent = '';
-        tablaBody.innerHTML = '<tr><td colspan="10" class="celda-vacia">Cargando productos...</td></tr>';
+        tablaBody.innerHTML = '<tr><td colspan="11" class="celda-vacia">Cargando productos...</td></tr>';
         productos = await api('/productos');
         if (!Array.isArray(productos)) {
             throw new Error('El backend devolvió una respuesta inesperada. Verifique que API_URL termine en /api.');
@@ -100,6 +102,7 @@ async function cargarProductos() {
 
 function abrirModal(producto = null) {
     editandoId = producto ? producto.id : null;
+    imagenEditando = producto?.imagen_url ?? null;
     modalTitulo.textContent = producto ? `Editar producto #${producto.id}` : 'Nuevo producto';
     avisoForm.textContent = '';
 
@@ -130,6 +133,7 @@ function leerFormulario() {
         codigo_barras: $('codigo_barras').value.trim(),
         nombre: $('nombre').value.trim(),
         descripcion: $('descripcion').value.trim(),
+        imagen_url: imagenEditando,
         precio_compra: Number($('precio_compra').value),
         precio_venta: Number($('precio_venta').value),
         stock: Number($('stock').value),
