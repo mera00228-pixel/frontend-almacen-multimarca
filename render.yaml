@@ -10,4 +10,4 @@ services:
       - key: NODE_VERSION
         value: "20"
       - key: API_URL
-        value: https://backend-almacen-multimarca-production-b0d5.up.railway.app/api
+        value: https://backend-almacen-multimarca.onrender.com/api

@@ -10,7 +10,7 @@ app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 
 // URL del backend (en Railway se define con la variable de entorno API_URL)
-const API_URL = process.env.API_URL || 'https://backend-almacen-multimarca-production-b0d5.up.railway.app/api';
+const API_URL = process.env.API_URL || 'https://backend-almacen-multimarca.onrender.com/api';
 app.locals.apiUrl = API_URL;
 
 // Middlewares

@@ -1,4 +1,4 @@
-const API_URL = (window.__API_URL__ || 'https://backend-almacen-multimarca-production-b0d5.up.railway.app/api').replace(/\/+$/, '');
+const API_URL = (window.__API_URL__ || 'https://backend-almacen-multimarca.onrender.com/api').replace(/\/+$/, '');
 const TOKEN_KEY = 'token';
 const TIMEOUT_MS = 15000;
 

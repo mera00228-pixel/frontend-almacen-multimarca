@@ -32,7 +32,7 @@
 ## 2. Correcciones implementadas
 
 ### 2.1 `app.js`
-- `API_URL` por defecto ahora apunta al backend de Railway: `https://backend-almacen-multimarca-production-b0d5.up.railway.app/api` (sigue siendo posible sobreescribirla con la variable de entorno `API_URL`).
+- `API_URL` por defecto apunta al backend desplegado en Render: `https://backend-almacen-multimarca.onrender.com/api` (el backend monta sus rutas bajo `/api`; sigue siendo posible sobreescribirla con la variable de entorno `API_URL`).
 - Nueva ruta `GET /health` → `{ status, uptime }` para el healthcheck de Railway.
 - `app.set('trust proxy', 1)` (correcto detrás del proxy de Railway).
 - Se conserva `process.env.PORT` y el bind en `0.0.0.0`.
@@ -56,17 +56,18 @@
 
 ---
 
-## 3. Configuración manual pendiente en Railway
+## 3. Configuración de las plataformas
 
-### 3.1 Backend (servicio API)
-1. **Variables → `CLIENT_URL`** = URL del frontend desplegado (por ejemplo `https://frontend-almacen-multimarca.up.railway.app`). Acepta varias URLs separadas por coma. Si se omite, el default es `*` (CORS abierto).
-2. **Obtener la URL real del servicio**: en el dashboard de Railway → servicio backend → tab *Networking* / *Settings* → dominio `*.up.railway.app`. La documentada (`...b0d5...`) ya no responde.
+El backend está desplegado en **Render** (`https://backend-almacen-multimarca.onrender.com`) y el frontend también en Render (`render.yaml`).
 
-### 3.2 Frontend (servicio web)
-1. **Variables → `API_URL`** = `<URL_REAL_DEL_BACKEND>/api` (debe terminar en `/api`).
+### 3.1 Backend (servicio API en Render)
+1. **Variables de entorno → `CLIENT_URL`** = URL del frontend desplegado (por ejemplo `https://frontend-almacen-multimarca.onrender.com`). Acepta varias URLs separadas por coma. Si se omite, el default es `*` (CORS abierto).
+2. La URL base del backend es `https://backend-almacen-multimarca.onrender.com/api` (las rutas de auth y productos se montan bajo `/api`).
+
+### 3.2 Frontend (servicio web en Render)
+1. **Variables de entorno → `API_URL`** = `https://backend-almacen-multimarca.onrender.com/api` (debe terminar en `/api`; ya viene fijada en `render.yaml`).
    - Aunque el default del código ya apunta al backend, se recomienda definirla explícitamente para no depender del código.
-   - Si la URL real cambió respecto a la documentada, actualizar el default en `app.js` (línea del `API_URL`) o sobreescribirla con esta variable.
-2. El servicio debe usar el **start command** `npm start` (NIXPACKS lo detecta; `railway.json` lo fija) y el healthcheck `/health` quedará activo.
+2. El servicio usa **start command** `npm start` y health check `/health` (fijados en `railway.json`/`render.yaml`). La URL pública queda en `https://frontend-almacen-multimarca.onrender.com`.
 
 ### 3.3 Credenciales de prueba
 - Usuario seed: `admin` / `1234` (creado por el backend en la primera migración).
