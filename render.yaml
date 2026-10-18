@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: frontend-almacen-multimarca
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: API_URL
+        value: https://backend-almacen-multimarca-production-b0d5.up.railway.app/api

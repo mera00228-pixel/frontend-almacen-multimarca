@@ -89,3 +89,45 @@
 - El token JWT expira a las 2 h; ante un 401 el frontend cierra sesión automáticamente.
 - El rate limit del backend (20 intentos / 15 min) aplica solo a `/api/login` y `/api/register`.
 - El formulario de producto no incluye `imagen_url` (campo opcional del backend); se puede agregar luego.
+
+---
+
+## 6. Despliegue en Render
+
+Se eligió **Render** (no Vercel) porque el frontend es un servidor Express de larga duración con vistas EJS; Vercel está orientado a funciones serverless y estáticos y exigiría reestructurar el proyecto.
+
+### 6.1 Archivos de configuración
+
+| Archivo | Contenido |
+|---------|-----------|
+| `render.yaml` | Blueprint del servicio web: runtime Node, `buildCommand: npm install`, `startCommand: npm start`, health check `/health`, variables `NODE_VERSION=20` y `API_URL` (URL del backend en Railway). |
+| `.env.example` | Plantilla de variables para desarrollo local (`API_URL`, `PORT`). |
+| `package.json` | `engines.node >= 20` y script `start` (ya existente). |
+
+El código ya cumple los requisitos de Render: escucha en `process.env.PORT` y `0.0.0.0`, y expone `GET /health`.
+
+### 6.2 Pasos en el dashboard de Render
+
+1. Crear cuenta en [render.com](https://render.com) → **New +** → **Web Service**.
+2. Conectar el repositorio de GitHub (`mera00228-pixel/frontend-almacen-multimarca`).
+3. Render detecta automáticamente el `render.yaml` (Blueprint). Verificar:
+   - **Name:** `frontend-almacen-multimarca`
+   - **Runtime:** Node
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Health Check Path:** `/health`
+4. Si la URL del backend en Railway cambó respecto a la documentada, editar la variable **`API_URL`** del servicio apuntando a `<URL_REAL_DEL_BACKEND>/api`.
+5. **Create Web Service**. La URL pública quedará en `https://frontend-almacen-multimarca.onrender.com`.
+6. En el **backend de Railway**, definir la variable `CLIENT_URL` con la URL de Render para restringir CORS.
+
+### 6.3 Consideraciones del plan gratuito de Render
+
+- El servicio se **duerme tras ~15 min sin tráfico**; la primera petición posterior tarda 30–60 s (cold start). El timeout de 15 s de `api.js` muestra un mensaje claro en lugar de dejar la pantalla colgada.
+- Tras cada push a `main`, Render redespliega automáticamente (autoDeploy activo por defecto al conectar el repo).
+
+### 6.4 Verificación tras el despliegue
+
+1. `GET https://<servicio>.onrender.com/health` → `{"status":"ok",...}`.
+2. Abrir la URL → login.
+3. Sesión `admin` / `1234` → lista de productos.
+4. CRUD completo de productos.
